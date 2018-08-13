@@ -1,6 +1,6 @@
 # Distributed-TensorFlow 
 Specifying distributed devices in your model.
-Train CNN Cifar10 over multiple devices to demonstrate the model parallelism approch.
+Train CNN Cifar10 or MNIST over multiple devices to demonstrate the model parallelism approch.
 In this example we use only one machine with mutliple GPUs.
 
 ## Run 
