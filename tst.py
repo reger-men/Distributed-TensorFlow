@@ -8,8 +8,9 @@ mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
 # Some numbers
 batch_size = 1
 display_step = 1
-scale_factor = 1
-num_input = 784*scale_factor
+scale_factor = 100
+o_input_size = 208
+num_input = o_input_size*o_input_size*scale_factor*scale_factor
 num_classes = 10
 
 # Set up tf session and initialize variables.
@@ -42,18 +43,18 @@ def maxpool2d(x, k=2):
 
 # Create model
 def CNN(x):
-    x = tf.reshape(x, shape=[-1, 28*1, 28*1, 1])
+    x = tf.reshape(x, shape=[-1, o_input_size*scale_factor, o_input_size*scale_factor, 1])
 
     with tf.device('/gpu:1'):
         # Convolution Layer
-        conv1=conv_layer(x, 1, 1, strides=1)
-    return conv1 #out
+        conv1=conv_layer(x, 1, 2, strides=1)
+    return conv1
 
 with tf.device('/cpu:0'):
     # Construct model
     X = tf.placeholder(tf.float32, [None, num_input]) # Input images feedable
     #Y = tf.placeholder(tf.float32, [None, num_classes]) # Ground truth feedable
-    Y = tf.placeholder(tf.float32, shape=(None,784*scale_factor*batch_size,1))
+    Y = tf.placeholder(tf.float32, shape=(None,num_input*batch_size,1))
     logits = CNN(X) # Unscaled probabilities
 
     prediction = tf.nn.softmax(logits) # Class-wise probabilities
@@ -68,8 +69,8 @@ with tf.device('/cpu:0'):
     accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
     init = tf.global_variables_initializer()
 
-    _batch_x = np.random.rand(batch_size,784*scale_factor)
-    _batch_y = np.random.rand(1,784*scale_factor*batch_size,1)
+    _batch_x = np.random.rand(batch_size,num_input)
+    _batch_y = np.random.rand(1,num_input*batch_size,1)
 
 # Start training
 from tensorflow.python import debug as tf_debug
@@ -78,9 +79,7 @@ with tf.Session(config=config) as sess:
     sess = tf_debug.LocalCLIDebugWrapperSession(sess)
     # Run the initializer
     sess.run(init)
-
-    run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-    run_metadata = tf.RunMetadata()
+    run_options = tf.RunOptions(report_tensor_allocations_upon_oom = True)
 
 
     for step in range(10000):
@@ -89,12 +88,12 @@ with tf.Session(config=config) as sess:
         batch_y = _batch_y
 
         # Run optimization op (backprop)
-        sess.run(train_op, feed_dict={X: batch_x, Y: batch_y}, run_metadata=run_metadata)
+        sess.run(train_op, feed_dict={X: batch_x, Y: batch_y}, options=run_options)
 
         if step % display_step == 0 or step == 1:
             # Calculate batch loss and accuracy
             loss, acc = sess.run([loss_op, accuracy], feed_dict={X: batch_x, Y : batch_y})
-            #print("Step " + str(step) + ", Minibatch Loss= " + "{:.4f}".format(loss) + ", Training Accuracy= " + "{:.3f}".format(acc))
+            print("Step " + str(step) + ", Minibatch Loss= " + "{:.4f}".format(loss) + ", Training Accuracy= " + "{:.3f}".format(acc))
 
 
     # Get test set accuracy
