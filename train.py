@@ -10,17 +10,17 @@ tf.test.gpu_device_name()
 
 
 # Some numbers
-batch_size =50
+batch_size = 500
 display_step = 1
 num_input = 784
 num_classes = 10
 
 # Set up tf session and initialize variables.
 config = tf.ConfigProto()
-config.gpu_options.allow_growth = True
+#config.gpu_options.allow_growth = True
 config.allow_soft_placement=True
 config.gpu_options.allocator_type = 'BFC'
-
+config.gpu_options.per_process_gpu_memory_fraction=0.777
 
 def conv_layer(inputs, channels_in, channels_out, strides=1):
 
@@ -46,16 +46,16 @@ def maxpool2d(x, k=2):
 
 # Create model
 def CNN(x, devices):
-    
+
     with tf.device(devices[0]):
         x = tf.reshape(x, shape=[-1, 28, 28, 1])
 
         # Convolution Layer
-        conv1=conv_layer(x, 1, 32000, strides=1)
+        conv1=conv_layer(x, 1, 320, strides=1)
         pool1=maxpool2d(conv1)
 
         # Convolution Layer
-        conv2=conv_layer(pool1, 32000, 64, strides=1)
+        conv2=conv_layer(pool1, 320, 64, strides=1)
         pool2=maxpool2d(conv2)
 
     with tf.device(devices[1]):
@@ -121,7 +121,7 @@ PORT2='2224'
 cluster_spec = tf.train.ClusterSpec({'worker' : [(IP_ADDRESS1 + ":" + PORT1), (IP_ADDRESS2 + ":" + PORT2)]})
 
 task_index=0 # master
-server = tf.train.Server(cluster_spec, job_name='worker', task_index=task_index)
+server = tf.train.Server(cluster_spec, job_name='worker', task_index=task_index, config=config)
 
 
 # Check the server definition
@@ -129,7 +129,7 @@ server.server_def
 
 
 # Start training
-with tf.Session(server.target, config=config) as sess:
+with tf.Session(server.target) as sess:
     # Run the initializer
     sess.run(init)
 
