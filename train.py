@@ -7,7 +7,7 @@ from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
 
 # Some numbers
-batch_size = 500
+batch_size = 50
 display_step = 1
 num_input = 784
 num_classes = 10
@@ -30,11 +30,10 @@ config.gpu_options.allow_growth = True
 config.allow_soft_placement=True
 config.gpu_options.allocator_type = 'BFC'
 
-# Define your list of IP address / port number combos
-IP_ADDRESS1='localhost'
-PORT1='2222'
-IP_ADDRESS2='localhost'
-PORT2='2224'
+# cluster specification
+parameter_servers = ["localhost:2222"]
+workers = ["localhost:2223", "localhost:2224"]
+
 
 def conv_layer(inputs, channels_in, channels_out, strides=1):
 
@@ -43,7 +42,7 @@ def conv_layer(inputs, channels_in, channels_out, strides=1):
         b=tf.Variable(tf.random_normal([channels_out]))
 
         # We can double check the device that this variable was placed on
-        print(w.device) 
+        print(w.device)
         print(b.device)
 
         # Define Ops
@@ -61,18 +60,18 @@ def maxpool2d(x, k=2):
 # Create model
 def CNN(x, devices):
 
-    with tf.device(devices[0]):
+    with tf.device(devices[1]):
         x = tf.reshape(x, shape=[-1, 28, 28, 1])
 
         # Convolution Layer
-        conv1=conv_layer(x, 1, 320, strides=1)
+        conv1=conv_layer(x, 1, 3200, strides=1)
         pool1=maxpool2d(conv1)
 
         # Convolution Layer
-        conv2=conv_layer(pool1, 320, 64, strides=1)
+        conv2=conv_layer(pool1, 3200, 64, strides=1)
         pool2=maxpool2d(conv2)
 
-    with tf.device(devices[1]):
+    with tf.device(devices[2]):
         # Fully connected layer
         fc1 = tf.reshape(pool2, [-1, 7*7*64])
         w1=tf.Variable(tf.random_normal([7*7*64, 1024]))
@@ -96,9 +95,10 @@ def CNN(x, devices):
 
 
 # Define devices that we wish to split our graph over
-device0='/job:worker/task:0'
-device1='/job:worker/task:1'
-devices=(device0, device1)
+device0='/job:ps/task:0'
+device1='/job:worker/task:0'
+device2='/job:worker/task:1'
+devices=(device0, device1, device2)
 
 tf.reset_default_graph() # Reset graph
 
@@ -109,7 +109,7 @@ with tf.device(devices[0]):
 
 logits = CNN(X, devices) # Unscaled probabilities
 
-with tf.device(devices[1]):
+with tf.device(devices[0]):
 
     prediction = tf.nn.softmax(logits) # Class-wise probabilities
 
@@ -125,11 +125,11 @@ with tf.device(devices[1]):
     init = tf.global_variables_initializer()
 
 # Define cluster
-cluster_spec = tf.train.ClusterSpec({'worker' : [(IP_ADDRESS1 + ":" + PORT1), (IP_ADDRESS2 + ":" + PORT2)]})
+#cluster_spec = tf.train.ClusterSpec({'worker' : [(IP_ADDRESS1 + ":" + PORT1), (IP_ADDRESS2 + ":" + PORT2)]})
+cluster_spec = tf.train.ClusterSpec({'ps' : parameter_servers, 'worker' : workers})
 
 # Define server for specific machine
-task_index = FLAGS.task_index
-server = tf.train.Server(cluster_spec, job_name='worker', task_index=task_index, config=config)
+server = tf.train.Server(cluster_spec, job_name='worker', task_index=FLAGS.task_index, config=config)
 
 # Check the server definition
 server.server_def

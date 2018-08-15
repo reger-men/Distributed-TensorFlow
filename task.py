@@ -7,9 +7,16 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--task_index",
     type=int,
-    default=1,
+    default=0,
     help="Index of task within the job"
 )
+parser.add_argument(
+      "--job_name",
+      type=str,
+      default="ps",
+      help="One of 'ps', 'worker'"
+  )
+
 
 FLAGS, unparsed = parser.parse_known_args()
 
@@ -19,18 +26,16 @@ config.gpu_options.allow_growth = True
 config.allow_soft_placement=True
 config.gpu_options.allocator_type = 'BFC'
 
-# Define your list of IP address / port number combos
-IP_ADDRESS1='localhost'
-PORT1='2222'
-IP_ADDRESS2='localhost'
-PORT2='2224'
+# cluster specification
+parameter_servers = ["localhost:2222"]
+workers = ["localhost:2223", "localhost:2224"]
 
 # Define cluster
-cluster_spec = tf.train.ClusterSpec({'worker' : [(IP_ADDRESS1 + ":" + PORT1), (IP_ADDRESS2 + ":" + PORT2)]})
+#cluster_spec = tf.train.ClusterSpec({'worker' : [(IP_ADDRESS1 + ":" + PORT1), (IP_ADDRESS2 + ":" + PORT2)]})
+cluster_spec = tf.train.ClusterSpec({'ps' : parameter_servers, 'worker' : workers})
 
 # Define server for specific machine
-task_index = FLAGS.task_index
-server = tf.train.Server(cluster_spec, job_name='worker', task_index=task_index, config=config)
+server = tf.train.Server(cluster_spec, job_name=FLAGS.job_name, task_index=FLAGS.task_index, config=config)
 
 # Server will run as long as the notebook is running
 server.join()
