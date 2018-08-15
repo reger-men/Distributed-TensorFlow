@@ -1,13 +1,10 @@
-from  __future__  import division, print_function, absolute_import
 import tensorflow as tf
+import argparse
+FLAGS = None
 
 # Get data
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
-
-
-tf.test.gpu_device_name()
-
 
 # Some numbers
 batch_size = 500
@@ -15,12 +12,29 @@ display_step = 1
 num_input = 784
 num_classes = 10
 
+
+# Flags for defining the tf.train.Server
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--task_index",
+    type=int,
+    default=0,
+    help="Index of task within the job"
+)
+
+FLAGS, unparsed = parser.parse_known_args()
+
 # Set up tf session and initialize variables.
 config = tf.ConfigProto()
-#config.gpu_options.allow_growth = True
+config.gpu_options.allow_growth = True
 config.allow_soft_placement=True
 config.gpu_options.allocator_type = 'BFC'
-config.gpu_options.per_process_gpu_memory_fraction=0.777
+
+# Define your list of IP address / port number combos
+IP_ADDRESS1='localhost'
+PORT1='2222'
+IP_ADDRESS2='localhost'
+PORT2='2224'
 
 def conv_layer(inputs, channels_in, channels_out, strides=1):
 
@@ -110,23 +124,15 @@ with tf.device(devices[1]):
 
     init = tf.global_variables_initializer()
 
-
-# Set up cluster
-IP_ADDRESS1='localhost'
-PORT1='2222'
-IP_ADDRESS2='localhost'
-PORT2='2224'
-
-# This line should match the same cluster definition in the Helper_Server.ipynb
+# Define cluster
 cluster_spec = tf.train.ClusterSpec({'worker' : [(IP_ADDRESS1 + ":" + PORT1), (IP_ADDRESS2 + ":" + PORT2)]})
 
-task_index=0 # master
+# Define server for specific machine
+task_index = FLAGS.task_index
 server = tf.train.Server(cluster_spec, job_name='worker', task_index=task_index, config=config)
-
 
 # Check the server definition
 server.server_def
-
 
 # Start training
 with tf.Session(server.target) as sess:
@@ -146,4 +152,3 @@ with tf.Session(server.target) as sess:
 
     # Get test set accuracy
     print("Testing Accuracy:",sess.run(accuracy, feed_dict={X: mnist.test.images[:256],Y: mnist.test.labels[:256]}))
-
