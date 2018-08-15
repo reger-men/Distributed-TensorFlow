@@ -9,7 +9,7 @@ mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
 batch_size = 1
 display_step = 1
 scale_factor = 100
-o_input_size = 208
+o_input_size = 280
 num_input = o_input_size*o_input_size*scale_factor*scale_factor
 num_classes = 10
 
@@ -72,30 +72,29 @@ with tf.device('/cpu:0'):
     _batch_x = np.random.rand(batch_size,num_input)
     _batch_y = np.random.rand(1,num_input*batch_size,1)
 
-# Start training
+    # Start training
 from tensorflow.python import debug as tf_debug
 
 with tf.Session(config=config) as sess:
-    sess = tf_debug.LocalCLIDebugWrapperSession(sess)
-    # Run the initializer
+        #sess = tf_debug.LocalCLIDebugWrapperSession(sess)
+        # Run the initializer
     sess.run(init)
     run_options = tf.RunOptions(report_tensor_allocations_upon_oom = True)
 
 
-    for step in range(10000):
+    for step in range(100):
         batch_x, batch_y = mnist.train.next_batch(batch_size)
         batch_x = _batch_x
         batch_y = _batch_y
 
-        # Run optimization op (backprop)
+            # Run optimization op (backprop)
         sess.run(train_op, feed_dict={X: batch_x, Y: batch_y}, options=run_options)
 
-        if step % display_step == 0 or step == 1:
-            # Calculate batch loss and accuracy
-            loss, acc = sess.run([loss_op, accuracy], feed_dict={X: batch_x, Y : batch_y})
-            print("Step " + str(step) + ", Minibatch Loss= " + "{:.4f}".format(loss) + ", Training Accuracy= " + "{:.3f}".format(acc))
-
+    if step % display_step == 0 or step == 1:
+        # Calculate batch loss and accuracy
+        loss, acc = sess.run([loss_op, accuracy], feed_dict={X: batch_x, Y : batch_y})
+        print("Step " + str(step) + ", Minibatch Loss= " + "{:.4f}".format(loss) + ", Training Accuracy= " + "{:.3f}".format(acc))
 
     # Get test set accuracy
-    print("Testing Accuracy:",sess.run(accuracy, feed_dict={X: mnist.test.images[:256],Y: mnist.test.labels[:256]}))
+    #print("Testing Accuracy:",sess.run(accuracy, feed_dict={X: mnist.test.images[:256],Y: mnist.test.labels[:256]}))
 
