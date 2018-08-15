@@ -3,15 +3,15 @@ import argparse
 FLAGS = None
 
 parser = argparse.ArgumentParser()
-
-
 # Flags for defining the tf.train.Server
 parser.add_argument(
     "--task_index",
     type=int,
-    default=0,
+    default=1,
     help="Index of task within the job"
 )
+
+FLAGS, unparsed = parser.parse_known_args()
 
 # Define your list of IP address / port number combos
 IP_ADDRESS1='localhost'
