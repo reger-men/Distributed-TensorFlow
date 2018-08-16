@@ -28,7 +28,7 @@ config.gpu_options.allocator_type = 'BFC'
 
 # cluster specification
 parameter_servers = ["localhost:2222"]
-workers = ["localhost:2223", "localhost:2224"]
+workers = ["localhost:2223", "localhost:2224", "localhost:2225"]
 
 # Define cluster
 #cluster_spec = tf.train.ClusterSpec({'worker' : [(IP_ADDRESS1 + ":" + PORT1), (IP_ADDRESS2 + ":" + PORT2)]})

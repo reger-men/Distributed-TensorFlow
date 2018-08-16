@@ -32,7 +32,7 @@ config.gpu_options.allocator_type = 'BFC'
 
 # cluster specification
 parameter_servers = ["localhost:2222"]
-workers = ["localhost:2223", "localhost:2224"]
+workers = ["localhost:2223", "localhost:2224", "localhost:2225"]
 
 
 def conv_layer(inputs, channels_in, channels_out, strides=1):
@@ -60,27 +60,27 @@ def maxpool2d(x, k=2):
 # Create model
 def CNN(x, devices):
 
-    with tf.device(devices[1]):
+    with tf.device(devices[2]):
         x = tf.reshape(x, shape=[-1, 28, 28, 1])
 
         # Convolution Layer
-        conv1=conv_layer(x, 1, 3200, strides=1)
+        conv1=conv_layer(x, 1, 320, strides=1)
         pool1=maxpool2d(conv1)
 
         # Convolution Layer
-        conv2=conv_layer(pool1, 3200, 64, strides=1)
+        conv2=conv_layer(pool1, 320, 64, strides=1)
         pool2=maxpool2d(conv2)
 
-    with tf.device(devices[2]):
+    with tf.device(devices[1]):
         # Fully connected layer
         fc1 = tf.reshape(pool2, [-1, 7*7*64])
-        w1=tf.Variable(tf.random_normal([7*7*64, 1024]))
-        b1=tf.Variable(tf.random_normal([1024]))
+        w1=tf.Variable(tf.random_normal([7*7*64, 5024]))
+        b1=tf.Variable(tf.random_normal([5024]))
         fc1 = tf.add(tf.matmul(fc1,w1),b1)
-        fc1=tf.nn.relu(fc1)
+        #fc1=tf.nn.relu(fc1)
 
         # Output layer
-        w2=tf.Variable(tf.random_normal([1024, num_classes]))
+        w2=tf.Variable(tf.random_normal([5024, num_classes]))
         b2=tf.Variable(tf.random_normal([num_classes]))
         out = tf.add(tf.matmul(fc1,w2),b2)
 
@@ -98,7 +98,8 @@ def CNN(x, devices):
 device0='/job:ps/task:0'
 device1='/job:worker/task:0'
 device2='/job:worker/task:1'
-devices=(device0, device1, device2)
+device3='/job:worker/task:2'
+devices=(device0, device1, device2, device3)
 
 tf.reset_default_graph() # Reset graph
 
@@ -109,7 +110,7 @@ with tf.device(devices[0]):
 
 logits = CNN(X, devices) # Unscaled probabilities
 
-with tf.device(devices[0]):
+with tf.device(devices[3]):
 
     prediction = tf.nn.softmax(logits) # Class-wise probabilities
 
