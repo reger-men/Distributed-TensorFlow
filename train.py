@@ -117,7 +117,7 @@ PORT1='2222'
 IP_ADDRESS2='localhost'
 PORT2='2224'
 
-# This line should match the same cluster definition in the Helper_Server.ipynb
+# Cluster definition 
 cluster_spec = tf.train.ClusterSpec({'worker' : [(IP_ADDRESS1 + ":" + PORT1), (IP_ADDRESS2 + ":" + PORT2)]})
 
 task_index=0 # master
