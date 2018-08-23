@@ -171,7 +171,7 @@ with tf.device(devices[2]):
         opt_fc_w = tf.train.MomentumOptimizer(learning_rate * 10.0, args.momentum)
         opt_fc_b = tf.train.MomentumOptimizer(learning_rate * 20.0, args.momentum)
 
-        grads = gradients(reduced_loss, conv_trainable + fc_w_trainable + fc_b_trainable)
+        grads = tf.gradients(reduced_loss, conv_trainable + fc_w_trainable + fc_b_trainable)
         #grads = gradients(reduced_loss, conv_trainable + fc_w_trainable + fc_b_trainable, checkpoints=[net.layers['conv2_3/relu'], net.layers['conv3_4/relu'], net.layers['conv4_2/relu'], net.layers['conv4_6/relu'], net.layers['conv5_3/relu']])
         grads_conv = grads[:len(conv_trainable)]
         grads_fc_w = grads[len(conv_trainable) : (len(conv_trainable) + len(fc_w_trainable))]
