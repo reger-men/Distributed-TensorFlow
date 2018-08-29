@@ -101,7 +101,8 @@ device2='/job:worker/task:1'
 device3='/job:worker/task:2'
 devices=(device0, device1, device2, device3)
 
-tf.reset_default_graph() # Reset graph
+# Reset graph
+tf.reset_default_graph() 
 
 # Construct model
 with tf.device(devices[0]):
