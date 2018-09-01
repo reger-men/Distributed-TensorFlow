@@ -8,7 +8,7 @@ In this example we use only one machine with mutliple GPUs.
 2. ```CUDA_VISIBLE_DEVICES=1 python3 task.py --job_name=worker --task_index=1```.
 2. ```CUDA_VISIBLE_DEVICES=0 python3 train.py``` That will create and run the Tensorflow graph.
 
-# PSPNet
+## PSPNet
 chekout `PSPNet` branch
 
 ## Reference
