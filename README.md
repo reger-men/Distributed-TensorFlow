@@ -9,7 +9,7 @@ In this example we use only one machine with mutliple GPUs.
 2. ```CUDA_VISIBLE_DEVICES=0 python3 train.py``` That will create and run the Tensorflow graph.
 
 # PSPNet
-chekout PSP branch
+chekout `PSPNet` branch
 
 ## Reference
 https://www.tensorflow.org/deploy/distributed
